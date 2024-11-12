@@ -1,0 +1,43 @@
+version: '3.9'
+
+services:
+  authorization-server-db:
+    container_name: comfy-authorization-server-db
+    image: postgres:alpine
+    environment:
+      POSTGRES_DB: ${AUTHORIZATION_SERVER_DB_NAME}
+      POSTGRES_USER: ${AUTHORIZATION_SERVER_DB_USER}
+      POSTGRES_PASSWORD: ${AUTHORIZATION_SERVER_DB_PASS}
+    networks:
+      - authorization-server-network
+    volumes:
+      - authorization-server-db-data:/var/lib/postgresql/data
+    ports:
+      - ${AUTHORIZATION_SERVER_DB_EXTERNAL_PORT}:5432
+
+  authorization-server-app:
+    container_name: comfy-authorization-server-app
+    image: quay.io/keycloak/keycloak:latest
+    command: start
+    environment:
+      KC_HOSTNAME: localhost
+      KC_HTTP_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KEYCLOAK_ADMIN: ${AUTHORIZATION_SERVER_APP_ADMIN_USER}
+      KEYCLOAK_ADMIN_PASSWORD: ${AUTHORIZATION_SERVER_APP_ADMIN_PASSWORD}
+      KC_DB: ${AUTHORIZATION_SERVER_APP_DB_VENDOR}
+      KC_DB_URL: ${AUTHORIZATION_SERVER_APP_DB_URL}
+      KC_DB_USERNAME: ${AUTHORIZATION_SERVER_APP_DB_USER}
+      KC_DB_PASSWORD: ${AUTHORIZATION_SERVER_APP_DB_PASS}
+    restart: always
+    depends_on:
+      - authorization-server-db
+    networks:
+      - authorization-server-network
+    ports:
+      - ${AUTHORIZATION_SERVER_APP_EXTERNAL_PORT}:8080
+
+volumes:
+  authorization-server-db-data:
+    name: comfy-authorization-server-db-data
+    driver: local

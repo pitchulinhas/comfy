@@ -1,0 +1,4 @@
+networks:
+  authorization-server-network:
+    name: comfy-authorization-server-network
+    driver: bridge
